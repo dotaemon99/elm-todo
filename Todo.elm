@@ -17,17 +17,34 @@ update msg model =
     Decrement ->
       model - 1
 
+view : any -> Html Msg
 view model =
   div 
-    [ css
-        [
-        ]
+    [ css 
+      [ textAlign center
+      , backgroundImage (url "./background.jpeg")
+      , backgroundSize cover
+      , height (pct 100)
+      , paddingTop (vh 20)
+      ] 
     ]
-    [ span
-      [ css
-          [ color (rgb 70 70 70)
-          , fontSize (px 32)
-          ]
+    [ todosContainer ]
+
+todosContainer : Html msg
+todosContainer =
+  div
+    [ css 
+      [ height (vh 40)
+      , marginLeft (pct 25)
+      , marginRight (pct 25)
+      , backgroundColor (rgb 255 255 255)
       ]
-      [ text "Todos" ]
     ]
+    [ div
+      [ css [] ]
+      [ h2
+        [ css [] ]
+        [ text "Wednesday, 8th" ]
+      ]
+    ]
+    
