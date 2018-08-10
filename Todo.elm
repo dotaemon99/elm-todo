@@ -3,7 +3,7 @@ module Todo exposing (..)
 import Css exposing (..)
 import Html
 import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes exposing (..)
 
 main = Html.beginnerProgram { model = 0, view = view >> toUnstyled, update = update }
 
@@ -24,7 +24,7 @@ view model =
       [ textAlign center
       , backgroundImage (url "./background.jpeg")
       , backgroundSize cover
-      , height (pct 100)
+      , Css.height (pct 100)
       , paddingTop (vh 20)
       ] 
     ]
@@ -34,13 +34,15 @@ todosContainer : Html msg
 todosContainer =
   div
     [ css 
-      [ height (vh 40)
+      [ Css.height (vh 40)
       , marginLeft (pct 25)
       , marginRight (pct 25)
-      , backgroundColor (rgb 255 255 255)
       ]
     ]
-    [ todosHeader ]
+    [ todosHeader
+    , todoInput
+    , todoEntries
+    ]
     
 todosHeader : Html msg
 todosHeader =
@@ -52,10 +54,8 @@ todosHeader =
       , backgroundColor (rgb 252 252 252)
       , displayFlex
       , flexDirection row
-      , border (px 0)
-      , borderBottom (px 0.5)
-      , borderColor (rgb 221 221 221)
-      , borderStyle solid
+      , borderTopLeftRadius (Css.em 0.5)
+      , borderTopRightRadius (Css.em 0.5)
       ] 
     ]
     [ h2
@@ -72,10 +72,53 @@ todosHeader =
         [ fontSize (Css.em 1.2)
         , color (rgb 175 175 175)
         , textAlign right
-        , fontFamilies [ "Helvetica" ]
+        , fontFamilies [ "Verdana" ]
+        , fontWeight normal
         , alignSelf center
         , flex (int 1)
         ] 
       ]
       [ text "0 task" ]
     ]
+
+todoInput : Html msg
+todoInput =
+  div
+    [ css 
+      [ padding (Css.em 3)
+      , paddingBottom (Css.em 2)
+      , paddingTop (Css.em 2)
+      , backgroundColor (rgb 255 255 255)
+      , border (px 0)
+      , borderBottom (px 0.25)
+      , borderTop (px 0.25)
+      , borderColor (rgb 238 238 238)
+      , borderStyle solid
+      ] 
+    ]
+    [ input
+      [ type_ "text"
+      , placeholder "What is your main focus for today?"
+      , css 
+        [ Css.width (pct 100)
+        , Css.height (pct 100)
+        , border (px 0)
+        , fontSize (Css.em 1.5)
+        , fontWeight normal
+        , outline none
+        ]
+      ]
+      []
+    ]
+
+todoEntries : Html msg
+todoEntries = 
+  div
+    [ css
+      [ paddingBottom (Css.em 1.5)
+      , backgroundColor (rgb 255 255 255)
+      , borderBottomLeftRadius (Css.em 0.5)
+      , borderBottomRightRadius (Css.em 0.5)
+      ]
+    ]
+    []
