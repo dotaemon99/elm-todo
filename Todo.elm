@@ -76,20 +76,21 @@ view model =
 
 todosContainer : Model -> Html Msg
 todosContainer model =
-  div
+  let todosLength = List.length (model.todos)
+  in div
     [ todosContainerStyle ]
-    [ todosHeader
+    [ todosHeader todosLength
     , todoInputContainer model.todoInput
-    , todoEntries
+    , todoEntries model.todos
     ]
 
 
-todosHeader : Html Msg
-todosHeader =
+todosHeader : Int -> Html Msg
+todosHeader todosLength =
   div
     [ todosHeaderStyle ]
     [ todosDate
-    , todosCount
+    , todosCount todosLength
     ]
 
 
@@ -100,11 +101,19 @@ todosDate =
     [ text "Wednesday, 8th" ]
 
 
-todosCount : Html Msg
-todosCount =
-  h4
-    [ todosCountStyle ]
-    [ text "0 task" ]
+todosCount : Int -> Html Msg
+todosCount todosLength =
+  let 
+    mappedTodosLength = toString todosLength
+    tasksStatement =
+      if todosLength > 0 then
+        " tasks"
+      else " task"
+    todosCountStatement = mappedTodosLength ++ tasksStatement
+  in
+    h4
+      [ todosCountStyle ]
+      [ text todosCountStatement ]
 
 
 todoInputContainer : String -> Html Msg
@@ -140,19 +149,19 @@ onEnter msg =
     on "keydown" (Json.andThen isEnter keyCode)
 
 
-todoEntries : Html Msg
-todoEntries = 
+todoEntries : List Todo -> Html Msg
+todoEntries todos =
   div
     [ todoEntriesStyle ]
-    [ todoEntry ]
+    ( List.map (todoEntry) todos )
 
 
-todoEntry : Html Msg
-todoEntry = 
+todoEntry : Todo -> Html Msg
+todoEntry todo = 
   div
     [ todoEntryStyle ]
     [ todoCheckBox
-    , todoLabel
+    , todoLabel todo.description
     ]
 
 
@@ -165,11 +174,11 @@ todoCheckBox =
     []
 
 
-todoLabel : Html Msg
-todoLabel =
+todoLabel : String -> Html Msg
+todoLabel desc =
   span
     [ todoLabelStyle ]
-    [ text "test" ]
+    [ text desc ]
 
 
 -- VIEW STYLING
@@ -181,7 +190,8 @@ mainStyle =
     [ ( "textAlign", "center" )
     , ( "background", "url('./background.jpeg')" )
     , ( "height", "100%" )
-    , ( "backgroundSize", "100%" )
+    , ( "backgroundSize", "cover" )
+    , ( "backgroundAttachment", "scroll" )
     ]
 
 
@@ -255,7 +265,7 @@ todoInputStyle =
     , ( "border", "0px" )
     , ( "fontSize", "1.5em" )
     , ( "fontWeight", "normal" )
-    , ( "outline", "none" ) 
+    , ( "outline", "none" )
     ]
 
 
@@ -273,8 +283,8 @@ todoEntryStyle : Html.Attribute Msg
 todoEntryStyle =
   style
     [ ( "padding", "3em" )
-    , ( "paddingBottom", "1em" )
-    , ( "paddingTop", "1em" )
+    , ( "paddingBottom", "1.25em" )
+    , ( "paddingTop", "1.25em" )
     , ( "backgroundColor", "white" )
     , ( "border", "0px" )
     , ( "borderBottom", "0.25px" )
@@ -288,7 +298,7 @@ todoEntryStyle =
 todoCheckBoxStyle : Html.Attribute Msg
 todoCheckBoxStyle =
   style
-    [ ( "marginRight", "1em" )
+    [ ( "marginRight", "2.5em" )
     , ( "alignSelf", "center" )
     , ( "paddingTop", "0.5em" )
     ]
@@ -297,8 +307,8 @@ todoCheckBoxStyle =
 todoLabelStyle : Html.Attribute Msg
 todoLabelStyle =
   style
-    [ ( "fontSize", "1em" )
+    [ ( "fontSize", "1.4em" )
     , ( "color", "#707070" )
-    , ( "fontFamily", "Verdana" )
+    , ( "fontFamily", "Helvetica" )
     , ( "fontWeight", "normal" )
     ]
