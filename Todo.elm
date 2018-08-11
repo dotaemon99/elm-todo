@@ -1,124 +1,304 @@
 module Todo exposing (..)
 
-import Css exposing (..)
-import Html
-import Html.Styled exposing (..)
-import Html.Styled.Attributes exposing (..)
+import Html exposing (Html, div, input, span, text, h4, h2)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Json.Decode as Json
 
-main = Html.beginnerProgram { model = 0, view = view >> toUnstyled, update = update }
+main = Html.beginnerProgram { model = model, view = view, update = update }
 
-type Msg = Increment | Decrement
+-- MODEL
 
+
+-- The full application state of our todo app.
+type alias Model =
+  { todos : List Todo
+  , todoInput : String
+  , uid : Int
+  }
+
+
+type alias Todo =
+  { description : String
+  , id : Int
+  }
+
+
+newTodo : String -> Int -> Todo
+newTodo desc id =
+  { description = desc
+  , id = id
+  }
+
+
+model: Model
+model = 
+  { todos = []
+  , todoInput = ""
+  , uid = 0
+  }
+
+
+-- UPDATE
+
+
+type Msg 
+  = Add 
+  | UpdateInput String
+
+update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Increment ->
-      model + 1
+    Add ->
+      { model
+        | uid = model.uid + 1
+        , todoInput = ""
+        , todos =
+          if String.isEmpty model.todoInput then
+            model.todos
+          else
+            model.todos ++ [ newTodo model.todoInput model.uid ]
+      }
+    
+    UpdateInput value ->
+      { model | todoInput = value }
 
-    Decrement ->
-      model - 1
 
-view : any -> Html Msg
+-- VIEW
+
+
+view : Model -> Html Msg
 view model =
   div 
-    [ css 
-      [ textAlign center
-      , backgroundImage (url "./background.jpeg")
-      , backgroundSize cover
-      , Css.height (pct 100)
-      , paddingTop (vh 20)
-      ] 
-    ]
-    [ todosContainer ]
+    [ mainStyle ]
+    [ todosContainer model ]
 
-todosContainer : Html msg
-todosContainer =
+
+todosContainer : Model -> Html Msg
+todosContainer model =
   div
-    [ css 
-      [ Css.height (vh 40)
-      , marginLeft (pct 25)
-      , marginRight (pct 25)
-      ]
-    ]
+    [ todosContainerStyle ]
     [ todosHeader
-    , todoInput
+    , todoInputContainer model.todoInput
     , todoEntries
     ]
-    
-todosHeader : Html msg
+
+
+todosHeader : Html Msg
 todosHeader =
   div
-    [ css 
-      [ padding (Css.em 3)
-      , paddingTop (Css.em 1.5)
-      , paddingBottom (Css.em 1.5)
-      , backgroundColor (rgb 252 252 252)
-      , displayFlex
-      , flexDirection row
-      , borderTopLeftRadius (Css.em 0.5)
-      , borderTopRightRadius (Css.em 0.5)
-      ] 
-    ]
-    [ h2
-      [ css 
-        [ fontSize (Css.em 1.8)
-        , color (rgb 255 87 51)
-        , textAlign left
-        , fontFamilies [ "Helvetica" ] 
-        ] 
-      ]
-      [ text "Wednesday, 8th" ],
-      h4
-      [ css 
-        [ fontSize (Css.em 1.2)
-        , color (rgb 175 175 175)
-        , textAlign right
-        , fontFamilies [ "Verdana" ]
-        , fontWeight normal
-        , alignSelf center
-        , flex (int 1)
-        ] 
-      ]
-      [ text "0 task" ]
+    [ todosHeaderStyle ]
+    [ todosDate
+    , todosCount
     ]
 
-todoInput : Html msg
-todoInput =
-  div
-    [ css 
-      [ padding (Css.em 3)
-      , paddingBottom (Css.em 2)
-      , paddingTop (Css.em 2)
-      , backgroundColor (rgb 255 255 255)
-      , border (px 0)
-      , borderBottom (px 0.25)
-      , borderTop (px 0.25)
-      , borderColor (rgb 238 238 238)
-      , borderStyle solid
-      ] 
-    ]
-    [ input
-      [ type_ "text"
-      , placeholder "What is your main focus for today?"
-      , css 
-        [ Css.width (pct 100)
-        , Css.height (pct 100)
-        , border (px 0)
-        , fontSize (Css.em 1.5)
-        , fontWeight normal
-        , outline none
-        ]
-      ]
-      []
-    ]
 
-todoEntries : Html msg
-todoEntries = 
+todosDate : Html Msg
+todosDate =
+  h2
+    [ todosDateStyle ]
+    [ text "Wednesday, 8th" ]
+
+
+todosCount : Html Msg
+todosCount =
+  h4
+    [ todosCountStyle ]
+    [ text "0 task" ]
+
+
+todoInputContainer : String -> Html Msg
+todoInputContainer field =
   div
-    [ css
-      [ paddingBottom (Css.em 1.5)
-      , backgroundColor (rgb 255 255 255)
-      , borderBottomLeftRadius (Css.em 0.5)
-      , borderBottomRightRadius (Css.em 0.5)
-      ]
+    [ todoInputContainerStyle ]
+    [ todoInput field ]
+
+
+todoInput : String -> Html Msg
+todoInput field =
+  input
+    [ type_ "text"
+    , placeholder "What is your main focus for today?"
+    , autofocus True
+    , onInput UpdateInput
+    , onEnter Add
+    , value field
+    , todoInputStyle
     ]
     []
+
+
+onEnter : Msg -> Html.Attribute Msg
+onEnter msg =
+  let
+    isEnter code =
+      if code == 13 then
+        Json.succeed msg
+      else
+        Json.fail "not ENTER"
+  in
+    on "keydown" (Json.andThen isEnter keyCode)
+
+
+todoEntries : Html Msg
+todoEntries = 
+  div
+    [ todoEntriesStyle ]
+    [ todoEntry ]
+
+
+todoEntry : Html Msg
+todoEntry = 
+  div
+    [ todoEntryStyle ]
+    [ todoCheckBox
+    , todoLabel
+    ]
+
+
+todoCheckBox : Html Msg
+todoCheckBox =
+  input
+    [ todoCheckBoxStyle
+    , type_ "checkbox"
+    ]
+    []
+
+
+todoLabel : Html Msg
+todoLabel =
+  span
+    [ todoLabelStyle ]
+    [ text "test" ]
+
+
+-- VIEW STYLING
+
+
+mainStyle : Html.Attribute Msg
+mainStyle =
+  style
+    [ ( "textAlign", "center" )
+    , ( "background", "url('./background.jpeg')" )
+    , ( "height", "100%" )
+    , ( "backgroundSize", "100%" )
+    ]
+
+
+todosContainerStyle : Html.Attribute Msg
+todosContainerStyle =
+  style
+    [ ( "height", "40vh" )
+    , ( "marginLeft", "25%" )
+    , ( "marginRight", "25%" )
+    , ( "paddingTop", "20vh" )
+    ]
+
+
+todosHeaderStyle : Html.Attribute Msg
+todosHeaderStyle =
+  style
+    [ ( "padding", "3em" )
+    , ( "paddingTop", "1.5em" )
+    , ( "paddingBottom", "1.5em" )
+    , ( "backgroundColor", "#FCFCFC" )
+    , ( "display", "flex" )
+    , ( "flexDirection", "row" )
+    , ( "borderTopLeftRadius", "0.5em" )
+    , ( "borderTopRightRadius", "0.5em" )
+    ]
+
+
+todosDateStyle : Html.Attribute Msg
+todosDateStyle =
+  style
+    [ ( "fontSize", "1.8em" )
+    , ( "color", "#FF5733" )
+    , ( "textAlign", "left" )
+    , ( "fontFamily", "Helvetica" )
+    ]
+
+
+todosCountStyle : Html.Attribute Msg
+todosCountStyle =
+  style
+    [ ( "fontSize", "1.2em" )
+    , ( "color", "#AFAFAF" )
+    , ( "textAlign", "right" )
+    , ( "fontFamily", "Verdana" )
+    , ( "fontWeight", "normal" )
+    , ( "alignSelf", "center" )
+    , ( "flex", "1" )
+    ]
+
+
+todoInputContainerStyle : Html.Attribute Msg
+todoInputContainerStyle =
+  style
+    [ ( "padding", "3em" )
+    , ( "paddingBottom", "2em" )
+    , ( "paddingTop", "2em" )
+    , ( "backgroundColor", "white" )
+    , ( "border", "0px" )
+    , ( "borderTop", "0.25px" )
+    , ( "borderBottom", "0.25px" )
+    , ( "borderColor", "#EEE" )
+    , ( "borderStyle", "solid" )
+    ]
+
+
+todoInputStyle : Html.Attribute Msg
+todoInputStyle =
+  style
+    [ ( "width", "100%" )
+    , ( "height", "100%" )
+    , ( "border", "0px" )
+    , ( "fontSize", "1.5em" )
+    , ( "fontWeight", "normal" )
+    , ( "outline", "none" ) 
+    ]
+
+
+todoEntriesStyle : Html.Attribute Msg
+todoEntriesStyle =
+  style
+    [ ( "paddingBottom", "1.5em" )
+    , ( "backgroundColor", "white" )
+    , ( "borderBottomLeftRadius", "0.5em" )
+    , ( "borderBottomRightRadius", "0.5em" )
+    ]
+
+
+todoEntryStyle : Html.Attribute Msg
+todoEntryStyle =
+  style
+    [ ( "padding", "3em" )
+    , ( "paddingBottom", "1em" )
+    , ( "paddingTop", "1em" )
+    , ( "backgroundColor", "white" )
+    , ( "border", "0px" )
+    , ( "borderBottom", "0.25px" )
+    , ( "borderColor", "#EEE" )
+    , ( "borderStyle", "solid" )
+    , ( "display", "flex" )
+    , ( "flexDirection", "row" )
+    ]
+
+
+todoCheckBoxStyle : Html.Attribute Msg
+todoCheckBoxStyle =
+  style
+    [ ( "marginRight", "1em" )
+    , ( "alignSelf", "center" )
+    , ( "paddingTop", "0.5em" )
+    ]
+
+
+todoLabelStyle : Html.Attribute Msg
+todoLabelStyle =
+  style
+    [ ( "fontSize", "1em" )
+    , ( "color", "#707070" )
+    , ( "fontFamily", "Verdana" )
+    , ( "fontWeight", "normal" )
+    ]
