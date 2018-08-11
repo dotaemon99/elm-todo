@@ -1,11 +1,12 @@
 module Todo exposing (..)
 
-import Html exposing (Html, div, input, span, text, h4, h2)
+import Html exposing (Html, div, input, span, text, h4, h2, button)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
 
 main = Html.beginnerProgram { model = model, view = view, update = update }
+
 
 -- MODEL
 
@@ -21,6 +22,7 @@ type alias Model =
 type alias Todo =
   { description : String
   , id : Int
+  , completed : Bool
   }
 
 
@@ -28,6 +30,7 @@ newTodo : String -> Int -> Todo
 newTodo desc id =
   { description = desc
   , id = id
+  , completed = False
   }
 
 
@@ -45,6 +48,8 @@ model =
 type Msg 
   = Add 
   | UpdateInput String
+  | UpdateStatus Int Bool
+  | DeleteTodo Int
 
 update : Msg -> Model -> Model
 update msg model =
@@ -62,6 +67,19 @@ update msg model =
     
     UpdateInput value ->
       { model | todoInput = value }
+
+    UpdateStatus id isCompleted ->
+      let
+        updatedTodo todo =
+          if todo.id == id then
+            { todo | completed = isCompleted }
+          else
+            todo
+      in
+        { model | todos = List.map updatedTodo model.todos }
+
+    DeleteTodo id ->
+      { model | todos = List.filter (\todo -> todo.id /= id) model.todos}
 
 
 -- VIEW
@@ -89,16 +107,16 @@ todosHeader : Int -> Html Msg
 todosHeader todosLength =
   div
     [ todosHeaderStyle ]
-    [ todosDate
+    [ todosTitle
     , todosCount todosLength
     ]
 
 
-todosDate : Html Msg
-todosDate =
+todosTitle : Html Msg
+todosTitle =
   h2
-    [ todosDateStyle ]
-    [ text "Wednesday, 8th" ]
+    [ todosTitleStyle ]
+    [ text "To-do Application" ]
 
 
 todosCount : Int -> Html Msg
@@ -160,25 +178,41 @@ todoEntry : Todo -> Html Msg
 todoEntry todo = 
   div
     [ todoEntryStyle ]
-    [ todoCheckBox
-    , todoLabel todo.description
+    [ todoCheckBox todo.id todo.completed
+    , todoLabel todo.description todo.completed
+    , todoDeleteButton todo.id
     ]
 
 
-todoCheckBox : Html Msg
-todoCheckBox =
+todoCheckBox : Int -> Bool -> Html Msg
+todoCheckBox id isCompleted =
   input
     [ todoCheckBoxStyle
     , type_ "checkbox"
+    , checked isCompleted
+    , onClick (UpdateStatus id (not isCompleted))
     ]
     []
 
 
-todoLabel : String -> Html Msg
-todoLabel desc =
+todoLabel : String -> Bool -> Html Msg
+todoLabel desc isCompleted =
   span
-    [ todoLabelStyle ]
+    [ if isCompleted then
+        todoCompleteLabelStyle
+      else 
+        todoLabelStyle
+    ]
     [ text desc ]
+
+
+todoDeleteButton : Int -> Html Msg
+todoDeleteButton id =
+  button
+    [ todoDeleteButtonStyle
+    , onClick (DeleteTodo id)
+    ]
+    [ text "x" ]
 
 
 -- VIEW STYLING
@@ -219,8 +253,8 @@ todosHeaderStyle =
     ]
 
 
-todosDateStyle : Html.Attribute Msg
-todosDateStyle =
+todosTitleStyle : Html.Attribute Msg
+todosTitleStyle =
   style
     [ ( "fontSize", "1.8em" )
     , ( "color", "#FF5733" )
@@ -298,9 +332,10 @@ todoEntryStyle =
 todoCheckBoxStyle : Html.Attribute Msg
 todoCheckBoxStyle =
   style
-    [ ( "marginRight", "2.5em" )
+    [ ( "marginRight", "2em" )
     , ( "alignSelf", "center" )
-    , ( "paddingTop", "0.5em" )
+    , ( "marginTop", "0.5em" )
+    , ( "zoom", "1.5" )
     ]
 
 
@@ -311,4 +346,30 @@ todoLabelStyle =
     , ( "color", "#707070" )
     , ( "fontFamily", "Helvetica" )
     , ( "fontWeight", "normal" )
+    , ( "display" , "flex" )
+    , ( "flex", "1" )
+    , ( "alignSelf", "center" )
+    ]
+
+todoCompleteLabelStyle : Html.Attribute Msg
+todoCompleteLabelStyle =
+  style
+    [ ( "fontSize", "1.4em" )
+    , ( "color", "#A0A0A0" )
+    , ( "fontFamily", "Helvetica" )
+    , ( "fontWeight", "normal" )
+    , ( "textDecoration", "line-through" )
+    , ( "display" , "flex" )
+    , ( "flex", "1" )
+    , ( "alignSelf", "center" )
+    ]
+
+todoDeleteButtonStyle : Html.Attribute Msg
+todoDeleteButtonStyle =
+  style
+    [ ( "color", "#AB5255" )
+    , ( "padding", "0px" )
+    , ( "border", "none" )
+    , ( "background", "none" )
+    , ( "fontSize", "1.5em" )
     ]
