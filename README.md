@@ -1,7 +1,9 @@
 ELM TODO Application
 ===
 
-Here is a simple Todo Application made with MVC pattern in Elm language.
+This repository is a simple Todo Application made with MVC pattern in Elm language.
+
+![alt text](https://raw.githubusercontent.com/dotaemon99/elm-todo/master/demo.png)
 
 ### Build Instruction
 ```
